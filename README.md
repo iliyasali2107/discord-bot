@@ -33,6 +33,7 @@
     google_translate_api_key: google translate api key
    ```
     if you don't have keys , you can take it from `example.config.yaml`, i will delete it after you check, but there is no bot_token, because discord refreshes it, when pushing it to repo
+    UPD: google also refreshed api key, so you need to provide your own api key
 
 4. You can run:
     ```sh
