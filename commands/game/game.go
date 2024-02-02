@@ -25,6 +25,8 @@ const (
 	helpGame = "usage:\n - to start a game \" !game start\"\n- to make a guess \"!game guess [number]\""
 )
 
+// locking and unlocking to prevent race condition,
+// svc.secretNumber and svc.isActive are shared variables
 func (svc *GameSvc) Handle(session *discordgo.Session, message *discordgo.MessageCreate) {
 	svc.mu.Lock()
 	defer svc.mu.Unlock()
@@ -75,11 +77,7 @@ func (svc *GameSvc) Handle(session *discordgo.Session, message *discordgo.Messag
 	}
 }
 
-// locking and unlocking to prevent race condition,
-// svc.secretNumber and svc.isActive are used in guess method
-
 func (svc *GameSvc) start(session *discordgo.Session, message *discordgo.MessageCreate) {
-
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	randomNumber := rand.Intn(5) + 1
 
@@ -89,8 +87,6 @@ func (svc *GameSvc) start(session *discordgo.Session, message *discordgo.Message
 }
 
 func (svc *GameSvc) guess(session *discordgo.Session, message *discordgo.MessageCreate, guessNum int) {
-	svc.mu.Lock()
-	defer svc.mu.Unlock()
 	if guessNum == svc.secretNumber {
 		svc.isActive = false
 		session.ChannelMessageSend(message.ChannelID, fmt.Sprintf("yes, secret number was %d, and %s found it\n%s", svc.secretNumber, message.Author.Username, helpGame))
