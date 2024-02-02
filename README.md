@@ -34,8 +34,24 @@
    ```
     if you don't have keys , you can take it from `example.config.yaml`, i will delete it after you check, but there is no bot_token, because discord refreshes it, when pushing it to repo
 
+4. You can run:
+    ```sh
+    make run 
+    ```
+    or run builded file:
+    ```sh
+    make run-build
+    ```
+    without make:
+    ```sh
+    go run ./cmd/bot/bot.go
+    ```
+    without make builded:
+    ```sh
+    ./bot
+    ```
 
-
-
-
-
+5. After bot started, go to your discord server and send to see commands:
+    ```discord
+    !help
+    ```
