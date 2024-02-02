@@ -6,37 +6,32 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// create general interface to easily write recovere middleware.
+// Because of recover works only in goroutine where panic occured
+// i need to add middleware for all commands that works in goroutine
+type Command interface {
+	Handle(session *discordgo.Session, message *discordgo.MessageCreate)
+}
+
+func (hf HandlerFunc) Handle(session *discordgo.Session, message *discordgo.MessageCreate) {
+	hf(session, message)
+}
+
+type HandlerFunc func(session *discordgo.Session, message *discordgo.MessageCreate)
+
 type MessageCreateGateway struct {
-	weatherSvc    WeatherInterface
-	translatorSvc TranslatorInterface
-	gameSvc       GameInterface
-	pollSvc       PollInterface
+	WeatherSvc    Command
+	TranslatorSvc Command
+	GameSvc       Command
+	PollSvc       Command
 }
 
-// word Interface in naming in my opinion is not so good, but there are not much options
-// Use interfaces because we can change services but not abstractions, and we doesn't depend on services
-type WeatherInterface interface {
-	WeatherCurrentInfoCommand(session *discordgo.Session, message *discordgo.MessageCreate)
-}
-
-type TranslatorInterface interface {
-	TranslateCommand(session *discordgo.Session, message *discordgo.MessageCreate)
-}
-
-type GameInterface interface {
-	GameCommand(session *discordgo.Session, message *discordgo.MessageCreate)
-}
-
-type PollInterface interface {
-	CreatePoll(session *discordgo.Session, message *discordgo.MessageCreate)
-}
-
-func NewMessageCreateGateway(weatherSvc WeatherInterface, translatorSvc TranslatorInterface, gameSvc GameInterface, pollSvc PollInterface) *MessageCreateGateway {
+func NewMessageCreateGateway(weatherSvc Command, translatorSvc Command, gameSvc Command, pollSvc Command) *MessageCreateGateway {
 	return &MessageCreateGateway{
-		weatherSvc:    weatherSvc,
-		translatorSvc: translatorSvc,
-		gameSvc:       gameSvc,
-		pollSvc:       pollSvc,
+		WeatherSvc:    weatherSvc,
+		TranslatorSvc: translatorSvc,
+		GameSvc:       gameSvc,
+		PollSvc:       pollSvc,
 	}
 }
 
@@ -50,15 +45,15 @@ func (g *MessageCreateGateway) Handle(session *discordgo.Session, message *disco
 
 	switch {
 	case strings.Contains(message.Content, "!help"):
-		go mainHelp(session, message.Message)
+		go mainHelp(session, message)
 	case strings.Contains(message.Content, "!weather"):
-		go g.weatherSvc.WeatherCurrentInfoCommand(session, message)
+		go g.WeatherSvc.Handle(session, message)
 	case strings.Contains(message.Content, "!translate"):
-		go g.translatorSvc.TranslateCommand(session, message)
+		go g.TranslatorSvc.Handle(session, message)
 	case strings.Contains(message.Content, "!game"):
-		go g.gameSvc.GameCommand(session, message)
+		go g.GameSvc.Handle(session, message)
 	case strings.Contains(message.Content, "!poll"):
-		go g.pollSvc.CreatePoll(session, message)
+		go g.PollSvc.Handle(session, message)
 	}
 }
 
@@ -73,6 +68,6 @@ bot usage
 - !poll -[question]- [options...]  - question must be in -...-
 `
 
-func mainHelp(session *discordgo.Session, message *discordgo.Message) {
+func mainHelp(session *discordgo.Session, message *discordgo.MessageCreate) {
 	session.ChannelMessageSend(message.ChannelID, help)
 }

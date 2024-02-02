@@ -17,10 +17,12 @@ import (
 	"github.com/iliyasali2107/discord-bot/commands/weather"
 	"github.com/iliyasali2107/discord-bot/config"
 	"github.com/iliyasali2107/discord-bot/internal/clients"
+	"github.com/iliyasali2107/discord-bot/middleware"
 	"google.golang.org/api/option"
 )
 
 func main() {
+
 	Run()
 }
 
@@ -80,6 +82,9 @@ func Run() {
 		messageCreateGateway = commands.NewMessageCreateGateway(weatherSvc, translatorSvc, gameSvc, polSvc)
 	)
 
+	// appling recover middleware to all services
+	middleware.ApplyRecover(messageCreateGateway)
+
 	discord.AddHandler(messageCreateGateway.Handle)
 
 	discord.Open()
@@ -90,5 +95,5 @@ func Run() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
-
+	log.Println("shutting down")
 }

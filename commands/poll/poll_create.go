@@ -22,7 +22,7 @@ const (
 	pollDuration = 30 * time.Second
 )
 
-func (svc *PollSvc) CreatePoll(session *discordgo.Session, message *discordgo.MessageCreate) {
+func (svc *PollSvc) Handle(session *discordgo.Session, message *discordgo.MessageCreate) {
 	channelID := message.ChannelID
 
 	// not standard input: question can have spaces
@@ -36,6 +36,11 @@ func (svc *PollSvc) CreatePoll(session *discordgo.Session, message *discordgo.Me
 
 		if err == ErrInvalidAmountArgs {
 			session.ChannelMessageSend(channelID, fmt.Sprintf("err: incorrect amount of args \n%s ", helpPoll))
+			return
+		}
+
+		if err == ErrNoQuestion {
+			session.ChannelMessageSend(channelID, fmt.Sprintf("err: no question provided \n%s ", helpPoll))
 			return
 		}
 	}
@@ -60,12 +65,10 @@ func (svc *PollSvc) CreatePoll(session *discordgo.Session, message *discordgo.Me
 
 	// add options as reactions
 	for i := range options {
-		go func(i int) {
-			err := session.MessageReactionAdd(channelID, msg.ID, fmt.Sprintf("%d⃣", i+1))
-			if err != nil {
-				fmt.Println("Error adding reaction:", err)
-			}
-		}(i)
+		err := session.MessageReactionAdd(channelID, msg.ID, fmt.Sprintf("%d⃣", i+1))
+		if err != nil {
+			fmt.Println("Error adding reaction:", err)
+		}
 	}
 
 	// waits for poll ending
@@ -101,8 +104,10 @@ type input struct {
 var (
 	ErrInvalidCommand    = fmt.Errorf("err: invalid !poll command")
 	ErrInvalidAmountArgs = fmt.Errorf("err: incorrect amount of args")
+	ErrNoQuestion        = fmt.Errorf("err: no question")
 )
 
+// i don't think its good validator, because it validates unstructured
 func validateAndParsePollCreateInput(message *discordgo.MessageCreate) (input, error) {
 	message.Content = strings.TrimSpace(message.Content)
 	partsForValidation := strings.Split(message.Content, " ")
@@ -115,11 +120,23 @@ func validateAndParsePollCreateInput(message *discordgo.MessageCreate) (input, e
 	}
 
 	parts := strings.Split(message.Content, "-")
+	if len(parts) == 2 {
+		if parts[1] == message.Content {
+			return input{}, ErrNoQuestion
+		}
+
+		return input{}, ErrNoQuestion
+	}
+
+	if len(parts) != 3 {
+		return input{}, ErrNoQuestion
+	}
+
 	question := parts[1]
 	options := strings.Split(strings.TrimSpace(parts[2]), " ")
 
-	if len(options) < 1 {
-		return input{}, ErrInvalidAmountArgs
+	if len(options) < 1 || options[0] == "" {
+		return input{}, ErrInvalidCommand
 	}
 
 	if len(question) == 0 {

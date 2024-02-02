@@ -25,7 +25,9 @@ const (
 	helpGame = "usage:\n - to start a game \" !game start\"\n- to make a guess \"!game guess [number]\""
 )
 
-func (svc *GameSvc) GameCommand(session *discordgo.Session, message *discordgo.MessageCreate) {
+func (svc *GameSvc) Handle(session *discordgo.Session, message *discordgo.MessageCreate) {
+	svc.mu.Lock()
+	defer svc.mu.Unlock()
 	parts := strings.Split(message.Content, " ")
 	if parts[0] != "!game" {
 		session.ChannelMessageSend(message.ChannelID, fmt.Sprintf("err: incorrect game input\n%s", helpGame))
@@ -43,7 +45,7 @@ func (svc *GameSvc) GameCommand(session *discordgo.Session, message *discordgo.M
 			return
 		}
 
-		go svc.start(session, message)
+		svc.start(session, message)
 
 	} else if parts[1] == "guess" {
 		if !svc.isActive {
@@ -66,7 +68,7 @@ func (svc *GameSvc) GameCommand(session *discordgo.Session, message *discordgo.M
 			return
 		}
 
-		go svc.guess(session, message, num)
+		svc.guess(session, message, num)
 	} else {
 		session.ChannelMessageSend(message.ChannelID, fmt.Sprintf("err: unknown command after !game \n%s", helpGame))
 		return
@@ -77,8 +79,7 @@ func (svc *GameSvc) GameCommand(session *discordgo.Session, message *discordgo.M
 // svc.secretNumber and svc.isActive are used in guess method
 
 func (svc *GameSvc) start(session *discordgo.Session, message *discordgo.MessageCreate) {
-	svc.mu.Lock()
-	defer svc.mu.Unlock()
+
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	randomNumber := rand.Intn(5) + 1
 

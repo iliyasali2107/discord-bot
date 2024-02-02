@@ -29,7 +29,7 @@ const (
 
 // errors are not checked, because don't have much time, but in real i would check it and log it
 // no need to validate city name, weather api will send proper response if city is invalid
-func (svc *WeatherSvc) WeatherCurrentInfoCommand(session *discordgo.Session, message *discordgo.MessageCreate) {
+func (svc *WeatherSvc) Handle(session *discordgo.Session, message *discordgo.MessageCreate) {
 	var (
 		command = message.Content
 		parts   = strings.Split(command, " ")

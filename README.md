@@ -45,11 +45,11 @@
     ```
     without make:
     ```sh
-    go run ./cmd/bot/bot.go
+    go run ./cmd/bot/bot.go -config=true
     ```
     without make builded:
     ```sh
-    ./bot
+    ./bot -config=true
     ```
 
 5. After bot started, go to your discord server and send to see commands:

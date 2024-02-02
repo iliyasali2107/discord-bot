@@ -30,7 +30,7 @@ const (
 	helpTranslate    = "usage: !translate [target language] [text to translate]"
 )
 
-func (svc *TranslatorSvc) TranslateCommand(session *discordgo.Session, message *discordgo.MessageCreate) {
+func (svc *TranslatorSvc) Handle(session *discordgo.Session, message *discordgo.MessageCreate) {
 	var (
 		command   = message.Content
 		parts     = strings.Split(command, " ")
