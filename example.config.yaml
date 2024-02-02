@@ -2,4 +2,4 @@ bot_token: YOUR_Token
 weather_api_key: 62be20575b6b4106a5072104240102
 weather_api_url: http://api.weatherapi.com/v1
 weather_api_current: current.json
-google_translate_api_key: AIzaSyB4yNa2UkPrLSXn-_YFUNbpdiraEJQ6Lyo
+google_translate_api_key: google api key
