@@ -61,8 +61,8 @@ func (svc *GameSvc) GameCommand(session *discordgo.Session, message *discordgo.M
 			return
 		}
 
-		if num < 1 || num > 10 {
-			session.ChannelMessageSend(message.ChannelID, fmt.Sprintf("err: guess should be between 1 to 10\n%s", helpGame))
+		if num < 1 || num > 5 {
+			session.ChannelMessageSend(message.ChannelID, fmt.Sprintf("err: guess should be between 1 to 5\n%s", helpGame))
 			return
 		}
 
@@ -96,5 +96,5 @@ func (svc *GameSvc) guess(session *discordgo.Session, message *discordgo.Message
 		return
 	}
 
-	session.ChannelMessageSend(message.ChannelID, "nooooooo, your guess is bad)")
+	session.ChannelMessageSend(message.ChannelID, "nooooooo, your guess is bad, guess again)")
 }
